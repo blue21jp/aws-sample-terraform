@@ -1,0 +1,9 @@
+[
+  {
+    "name": "amazonlinux",
+    "image": "amazonlinux:latest",
+    "essential": true,
+    "memory": 128,
+    "pseudoTerminal": true
+  }
+]

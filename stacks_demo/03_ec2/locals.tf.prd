@@ -1,0 +1,18 @@
+locals {
+  ec2_list = {
+    vm1 = {
+      name          = "work01"
+      instance_type = "t3.nano"
+      image_id      = one(data.aws_ami.main[*].id)
+      key_name      = "sandbox"
+      sg_ingress    = []
+    }
+    vm2 = {
+      name          = "work02"
+      instance_type = "t3.nano"
+      image_id      = one(data.aws_ami.main[*].id)
+      key_name      = "sandbox"
+      sg_ingress    = []
+    }
+  }
+}

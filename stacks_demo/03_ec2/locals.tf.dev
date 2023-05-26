@@ -1,0 +1,27 @@
+locals {
+  ec2_list = {
+    vm01 = {
+      name          = "work01"
+      instance_type = "t3.nano"
+      key_name      = "test-key"
+      image_id      = one(data.aws_ami.main[*].id)
+      sg_ingress    = []
+    }
+    vm02 = {
+      name          = "work02"
+      instance_type = "t3.nano"
+      key_name      = "test-key"
+      image_id      = one(data.aws_ami.main[*].id)
+      sg_ingress    = [
+        {
+          from_port       = 80
+          to_port         = 80
+          protocol        = "tcp"
+          security_groups = []
+          self            = false
+          cidr_blocks     = ["0.0.0.0/0"]
+        }
+      ]
+    }
+  }
+}

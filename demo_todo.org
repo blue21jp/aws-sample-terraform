@@ -1,0 +1,109 @@
+#+title: Terraform Demo
+
+* NOTE
+
+- この手順で構築している様子を動画にしました。
+  https://youtu.be/ofmbBqLF7kA
+
+- awsp などは, bashのaliasやfunctionで自作したものです。
+  このレポジトリには含まれていません。
+
+* MENU
+
+** TODO 動作環境の確認
+aws-account-id, aws-region, スタックDIRを確認する
+
+dev
+- [ ] localstack のaccount_id 確認
+      awsp,awsa
+- [ ] スタックDIRの確認
+      ll stacks_base/00_check
+- [ ] plan で構築環境のaccount_id, region確認
+      make plan -C stacks_base/00_check
+- [ ] スタックDIRの確認
+      ll stacks_base/00_check
+- [ ] スタックDIRを初期状態に戻す
+      make clean -C stacks_base/00_check
+- [ ] スタックDIRの確認
+      ll stacks_base/00_check
+
+** TODO stack_baseの構築
+ネットワーク(VPC,subnet,natインスタンス)
+
+dev
+- [ ] localstackのvpc確認
+      lsvpc
+- [ ] VPCのapply
+      make apply -C stacks_base/01_network
+- [ ] localstackのvpc確認
+      lsvpc
+- [ ] NATインスタンスのplan
+      make plan -C stacks_base/02_ec2_nat
+      (localstackではEC2構築できない)
+prd
+- [ ] awsのVPC,EC2確認
+      awsp(sandbox), lsvpc, lsec2
+- [ ] awsのVPC,NATインスタンスapply
+      make apply ENV=prd -C stacks_base
+- [ ] awsのVPC,EC2確認
+      lsvpc, lsec2
+- [ ] NATインスタンスへのSSH確認
+      ssh (ssm agnet経由)
+
+** TODO stack_demoの構築
+EC2(spot)が２台、ECS(fargate spot)が２台
+
+dev
+- [ ] EC2,ECSのpaln
+      make plan -C stacks_demo
+      (localstackではEC2,ECS構築できない)
+prd
+- [ ] awsのec2,ecs確認
+      lsec2, lsecs
+- [ ] EC2のapply (-auto-approve)
+      make apply ENV=prd OPT="-auto-approve" -C stacks_demo/03_ec2
+- [ ] awsのec2確認
+      lsec2
+- [ ] ssh確認
+      ssh (ssm-agent経由)
+- [ ] ECSのapply (-auto-approve)
+      make apply ENV=prd OPT="-auto-approve" stacks_demo/04_ecs
+- [ ] awsのECS確認
+      lsecs
+- [ ] ecsのコンテナに入る(ecsexec)
+      ecsexec
+- [ ] web
+
+** TODO import操作のデモ
+サブネットをStateから削除して、インポートする
+
+dev
+- [ ] VPCのplanで差分なし
+      make plan -C stacks_base/01_network
+- [ ] state list 確認
+      make list -C stacks_base/01_network
+- [ ] stateからサブネット削除
+      make rm OPT="aws_subnet.private[0]" -C stacks_base/01_network
+- [ ] state list 確認
+      make list -C stacks_base/01_network
+- [ ] VPCのplanで差分あり。subnet-id確認
+      make plan -C stacks_base/01_network
+- [ ] 上記でrmしたサブネットのimport
+      make import OPT="aws_subnet.private[0] subnet-id" -C stacks_base/01_network
+- [ ] VPCのplanで差分なし
+      make plan -C stacks_base/01_network
+
+** TODO 掃除
+構築したリソースを全部破棄して、terraform環境を初期化
+
+dev/prd
+- [ ] destroy (-auto-approve)
+      make destroy ENV=prd OPT="-auto-approve" -C stacks-demo
+      make destroy ENV=prd OPT="-auto-approve" -C stacks-base
+      make destroy ENV=dev OPT="-auto-approve" -C stacks-base
+- [ ] VPC確認
+      lsvpc
+- [ ] スタックDIRを初期状態に戻す
+      make clean -C stacks-demo
+      make clean -C stacks-base
+
